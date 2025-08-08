@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["chao <chao@mgchao.top>"]
 edition = "2024"
 description = "Ultra-fast WebP encoder and decoder, based on Rust's image-webp implementation"
-repository = "https://github.com/mgchao/turbo-webp"
+repository = "https://github.com/mg-chao/turbo-webp"
 
 [lib]
 crate-type = ["cdylib", "rlib"]

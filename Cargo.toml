@@ -1,10 +1,11 @@
 [package]
 name = "turbo-webp"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["chao <chao@mgchao.top>"]
 edition = "2024"
 description = "Ultra-fast WebP encoder and decoder, based on Rust's image-webp implementation"
 repository = "https://github.com/mg-chao/turbo-webp"
+license = "Apache-2.0"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -23,7 +24,7 @@ image-webp = "0.2.3"
 console_error_panic_hook = { version = "0.1.7", optional = true }
 
 [dev-dependencies]
-wasm-bindgen-test = "0.3.34"
+wasm-bindgen-test = "0.3.50"
 
 [profile.release]
 # Tell `rustc` to optimize for small code size.

@@ -1,6 +1,6 @@
 [package]
 name = "turbo-webp"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["chao <chao@mgchao.top>"]
 edition = "2024"
 description = "Ultra-fast WebP encoder and decoder, based on Rust's image-webp implementation"

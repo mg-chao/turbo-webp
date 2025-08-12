@@ -6,7 +6,17 @@ use image_webp::{WebPDecoder, WebPEncoder};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
-pub fn decode(data: &[u8]) -> Result<Vec<u8>, String> {
+/// 解码 WebP 图像，数据后 8 位包含图像的宽高信息
+///
+/// # Arguments
+///
+/// - `data` (`&[u8]`) - WebP 图像数据。
+///
+/// # Returns
+///
+/// - `Result<Vec<u8>, String>` - 解码后的图像数据。
+/// ```
+pub fn decode(data: &[u8]) -> Result<wasm_bindgen::Clamped<Vec<u8>>, String> {
     let mut decoder = match WebPDecoder::new(Cursor::new(data)) {
         Ok(decoder) => decoder,
         Err(e) => {
@@ -21,15 +31,22 @@ pub fn decode(data: &[u8]) -> Result<Vec<u8>, String> {
         .output_buffer_size()
         .expect("[turbo_webp::decode] Failed to get output buffer size");
 
-    let mut output = vec![0; output_buffer_size];
-    if let Err(e) = decoder.read_image(&mut output) {
+    let mut output = vec![0; output_buffer_size + 8];
+    if let Err(e) = decoder.read_image(&mut output[..output_buffer_size]) {
         return Err(format!(
             "[turbo_webp::decode] Failed to read WebP image: {}",
             e
         ));
     }
 
-    Ok(output)
+    let (width, height) = decoder.dimensions();
+    let width_bytes = width.to_le_bytes();
+    let height_bytes = height.to_le_bytes();
+
+    output[output_buffer_size..output_buffer_size + 4].copy_from_slice(&width_bytes);
+    output[output_buffer_size + 4..output_buffer_size + 8].copy_from_slice(&height_bytes);
+
+    Ok(wasm_bindgen::Clamped(output))
 }
 
 #[wasm_bindgen]

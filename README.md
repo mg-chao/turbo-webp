@@ -11,11 +11,11 @@
 ```ts
 let wasmModuleArrayBuffer: ArrayBuffer;
 
-export async function getPixels(
-    imageBuffer: ArrayBuffer,
-    width: number,
-    height: number,
-): Promise<ImageData> {
+export async function getPixels(imageBuffer: ArrayBuffer | string): Promise<{
+    data: ImageData;
+    width: number;
+    height: number;
+}> {
     return new Promise(async (resolve, reject) => {
         const worker = new Worker(new URL('./getPixelsWorker.ts', import.meta.url));
 
@@ -35,7 +35,7 @@ export async function getPixels(
             );
             wasmModuleArrayBuffer = await wasmModuleResponse.arrayBuffer();
         }
-        worker.postMessage({ imageBuffer, width, height, wasmModuleArrayBuffer });
+        worker.postMessage({ imageBuffer, wasmModuleArrayBuffer });
     });
 }
 
@@ -50,18 +50,30 @@ self.onmessage = async (
     event: MessageEvent<{
         wasmModuleArrayBuffer: ArrayBuffer;
         imageBuffer: ArrayBuffer;
-        width: number;
-        height: number;
     }>,
 ) => {
-    const { imageBuffer, width, height, wasmModuleArrayBuffer } = event.data;
+    const { imageBuffer, wasmModuleArrayBuffer } = event.data;
 
     initSync({
         module: wasmModuleArrayBuffer,
     });
 
+    // 后 8 位包含图像的宽高
     const imageData = decode(new Uint8Array(imageBuffer));
 
-    self.postMessage(new ImageData(new Uint8ClampedArray(imageData), width, height));
+    const dataView = new DataView(imageData.buffer, imageData.byteLength - 8);
+    const imageWidth = dataView.getUint32(0, true);
+    const imageHeight = dataView.getUint32(4, true);
+
+    self.postMessage({
+        data: new ImageData(
+            imageData.subarray(0, imageWidth * imageHeight * 4),
+            imageWidth,
+            imageHeight,
+        ),
+        width: imageWidth,
+        height: imageHeight,
+    });
 };
+
 ```
